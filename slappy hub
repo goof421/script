@@ -4,69 +4,214 @@ local Window = Rayfield:CreateWindow({
     Name = "Slappy Hub",
     Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
     LoadingTitle = "Slappy Hub is loading",
-    LoadingSubtitle = "by no in discord",
+    LoadingSubtitle = "by Scliptar in Youtube",
     Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
- 
+
     DisableRayfieldPrompts = false,
     DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
- 
+
     ConfigurationSaving = {
        Enabled = true,
        FolderName = nil, -- Create a custom folder for your hub/game
-       FileName = "Big Hub"
+       FileName = "Slappy Hub"
     },
- 
+
     Discord = {
-       Enabled = false, -- Prompt the user to join your Discord server if their executor supports it
-       Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
-       RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+       Enabled = true, -- Prompt the user to join your Discord server if their executor supports it
+       Invite = "https://discord.gg/z33V9naSqc", -- The Discord invite code, do not include discord.gg/
+       RememberJoins = false -- Set this to false to make them join the discord every time they load it up
     },
- 
+
     KeySystem = true, -- Set this to true to use our key system
     KeySettings = {
        Title = "Key",
        Subtitle = "Key System",
-       Note = "No method of obtaining the key is provided", -- Use this to tell the user how to get a key
+       Note = "Join discord for key", -- Use this to tell the user how to get a key
        FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
        SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
        GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
-       Key = {"Hello"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+       Key = {"Hello"} -- List of keys that will be accepted by the system
     }
- })
+})
 
- local PlayerTab = Window:CreateTab("Player", 4483362458) -- Title, Image
+local PlayerTab = Window:CreateTab("Player", 12827710606) -- Title, Image
 
- local Slider = PlayerTab:CreateSlider({
-    Name = "Slider thingy",
-    Range = {0, 100},
+-- Speed Slider code here
+local Slider = PlayerTab:CreateSlider({
+    Name = "Speed Slider",
+    Range = {0, 300},
     Increment = 1,
-    Suffix = "wowy",
-    CurrentValue = 20,
-    Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Suffix = "Speed",
+    CurrentValue = 16,
+    Flag = "Slider1",
     Callback = function(Value)
-    -- The function that takes place when the slider changes
-    -- The variable (Value) is a number which correlates to the value the slider is currently at
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
     end,
- })
+})
 
- local GloveTab = Window:CreateTab("Glove", 12827710606) -- Title, Image
+-- Jump Power Slider below the Speed Slider
+local JumpPowerSlider = PlayerTab:CreateSlider({
+    Name = "Jump Power Slider",
+    Range = {0, 200},  -- Adjust the range as needed
+    Increment = 1,
+    Suffix = "Jump Power",
+    CurrentValue = 50,  -- Default value for the jump power
+    Flag = "JumpPowerSlider",  -- Unique flag for saving
+    Callback = function(Value)
+        game.Players.LocalPlayer.Character.Humanoid.JumpPower = Value
+    end,
+})
 
- local Button = GloveTab:CreateButton({
+local GloveTab = Window:CreateTab("Glove", 4483362458) -- Title, Image
+
+local Button = GloveTab:CreateButton({
     Name = "Make Your hitbox bigger",
     Callback = function()
         local plr = game.Players.LocalPlayer
 
-        function supaSiza(v)
-           if v:IsA("Tool") then
-               v.Hitbox.Transparency = 0.75
-               v.Hitbox.Size = Vector3.new(25, 25, 25)
-           end
+        local function supaSiza(v)
+            if v:IsA("Tool") then
+                v.Hitbox.Transparency = 0.75
+                v.Hitbox.Size = Vector3.new(25, 25, 25)
+            end
         end
         
         plr.Character.ChildAdded:Connect(supaSiza)
-        
         plr.CharacterAdded:Connect(function(char)
-           char.ChildAdded:Connect(supaSiza)
+            char.ChildAdded:Connect(supaSiza)
         end)
     end,
- })
+})
+
+-- Teleport Tool Button
+local Button = PlayerTab:CreateButton({
+    Name = "Give Teleport Tool",
+    Callback = function()
+        -- Function to create the Teleport Tool
+        local TeleportTool = Instance.new("Tool")
+        TeleportTool.Name = "TeleportTool"
+        TeleportTool.RequiresHandle = true
+
+        -- Create the handle for the tool (visual part of the tool)
+        local handle = Instance.new("Part")
+        handle.Name = "Handle"
+        handle.Size = Vector3.new(1, 5, 1)
+        handle.BrickColor = BrickColor.new("Bright blue")
+        handle.Anchored = false
+        handle.CanCollide = false
+        handle.Parent = TeleportTool
+
+        -- Equip the tool to the player
+        TeleportTool.Parent = game.Players.LocalPlayer.Backpack
+
+        -- Function to teleport the player to the clicked position
+        local function teleportToClickPosition(mousePosition)
+            local player = game.Players.LocalPlayer
+            if player and player.Character then
+                local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    -- Teleport the player to where the mouse clicked
+                    hrp.CFrame = CFrame.new(mousePosition)
+                    print("Teleported to: " .. tostring(mousePosition))
+                else
+                    print("HumanoidRootPart not found!")
+                end
+            else
+                print("Player or Character not found!")
+            end
+        end
+
+        -- Function to handle tool activation (clicking)
+        TeleportTool.Activated:Connect(function()
+            -- Get the player's mouse
+            local player = game.Players.LocalPlayer
+            local mouse = player:GetMouse()
+            
+            -- Raycast to detect where the mouse is pointing
+            local rayOrigin = mouse.Hit.p  -- This is where the mouse is pointing in the world
+            local rayDirection = Vector3.new(0, -100, 0)  -- Raycast downward to hit the ground
+
+            -- Perform the raycast
+            local raycastResult = game.Workspace:Raycast(rayOrigin, rayDirection)
+
+            if raycastResult then
+                -- If the ray hit something, teleport the player to that position
+                teleportToClickPosition(raycastResult.Position)
+            else
+                print("No valid location found to teleport to!")
+            end
+        end)
+        
+        print("Teleport Tool has been given!")
+    end,
+})
+
+local Button = GloveTab:CreateButton({
+    Name = "Anti-Void",
+    Callback = function()
+        local part = Instance.new("Part")
+        part.Size = Vector3.new(1988, 1, 1994)
+        part.Position = Vector3.new(-170.11865234375, -6.221330642700195, -268.9756774902344)
+        part.Transparency = 1  -- Sets the part to be completely transparent
+        part.Anchored = true
+        part.Parent = game.Workspace
+    end,
+})
+
+local TeleportTab = Window:CreateTab("Teleports", 4483362458) -- Title, Image
+
+local Dropdown = TeleportTab:CreateDropdown({
+    Name = "Goto",
+    Options = {"TP To Arena", "TP To Slapple", "TP To Moyai", "TP To Barzil"},
+    CurrentOption = "TP To Arena",  -- Ensure it's a single string (not a table)
+    MultipleOptions = false,
+    Flag = "Teleports", 
+    Callback = function(Option)
+        -- Debugging: Check if Option is passed as a table
+        if type(Option) == "table" then
+            print("Option is a table, extracting the first item...")
+            Option = Option[1]  -- Extract the first element from the table
+        end
+
+        -- Debugging: Check what Option is being passed
+        print("Callback received with Option: " .. tostring(Option))
+
+        -- Ensure Option is a valid string and exists in locations
+        local locations = {
+            ["TP To Arena"] = Vector3.new(96.36945343017578, -4.2497406005859375, -14.146854400634766),
+            ["TP To Slapple"] = Vector3.new(-397.06005859375, 51.7684211730957, -13.967025756835938),
+            ["TP To Moyai"] = Vector3.new(255.46043395996094, -14.792890548706055, -10.811788558959961),
+            ["TP To Barzil"] = Vector3.new(-214.9952392578125, 599.852783203125, -0.00006103515625)
+        }
+
+        -- Debugging: Print all available locations
+        print("Available locations:")
+        for key, location in pairs(locations) do
+            print("Key: '" .. key .. "', Location: " .. tostring(location))
+        end
+
+        -- Check if Option is a valid location in the table
+        if Option and type(Option) == "string" then
+            if locations[Option] then
+                -- Teleport the player if the location is found
+                local player = game.Players.LocalPlayer
+                if player and player.Character then
+                    local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+                    if hrp then
+                        -- Teleport the player to the selected location
+                        hrp.CFrame = CFrame.new(locations[Option])
+                        print("Teleported successfully!")
+                    else
+                        warn("HumanoidRootPart not found!")
+                    end
+                else
+                    warn("Player character not found!")
+                end
+            else
+                warn("Invalid teleport location: '" .. Option .. "' not found in the locations table!")
+            end
+        else
+            warn("Invalid Option passed to Callback: " .. tostring(Option))
+        end
+    end,
+})
